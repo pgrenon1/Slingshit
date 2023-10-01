@@ -1,0 +1,67 @@
+[gd_scene load_steps=7 format=3 uid="uid://cuh68xv5qb4ka"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/FPSController.cs" id="1_kc5gx"]
+[ext_resource type="Script" path="res://Assets/Scripts/GroundCheck.cs" id="2_xfkxp"]
+[ext_resource type="Texture2D" uid="uid://bl7qutn1kucbc" path="res://Assets/Textures/crosshairs/crosshair8.png" id="3_mbyfy"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_bvjtn"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bahc3"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_lwulr"]
+
+[node name="FPSController" type="RigidBody3D" node_paths=PackedStringArray("cameraPivot", "camera", "groundCheck")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+input_ray_pickable = false
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+physics_material_override = SubResource("PhysicsMaterial_bvjtn")
+script = ExtResource("1_kc5gx")
+speed = 7.0
+mouse_sensitivity = 0.2
+min_pitch = -85.0
+max_pitch = 85.0
+groundAcceleration = 40.0
+airAcceleration = 20.0
+cameraPivot = NodePath("CameraPivot")
+camera = NodePath("CameraPivot/Camera3D")
+groundCheck = NodePath("GroundCheck")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_bahc3")
+
+[node name="GroundCheck" type="ShapeCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.479608, 0)
+shape = SubResource("SphereShape3D_lwulr")
+target_position = Vector3(0, -1.1, 0)
+script = ExtResource("2_xfkxp")
+
+[node name="CameraPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47651, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="Control"]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -128.0
+offset_right = 128.0
+offset_bottom = 128.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_mbyfy")

@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://cgxqwhbhdkpc2"]
+
+[ext_resource type="ArrayMesh" uid="uid://ux020j3prfxu" path="res://addons/kaykit_prototype_bits/Assets/obj/Wall.obj" id="1_fy7os"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_4j4el"]
+points = PackedVector3Array(1.96803, 4.03095, 0.289627, 1.96803, -0.0309505, 0.289627, 1.96803, 4.03095, -0.28169, -1.96811, 4.03095, 0.289627, 1.96803, -0.0309505, -0.28169, -1.96811, 4.03095, -0.28169, -1.96811, -0.0309505, 0.289627, -1.96811, -0.0309505, -0.28169)
+
+[node name="Wall" type="MeshInstance3D"]
+mesh = ExtResource("1_fy7os")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("ConvexPolygonShape3D_4j4el")
