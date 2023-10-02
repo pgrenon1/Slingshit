@@ -3,12 +3,15 @@
 [ext_resource type="ArrayMesh" uid="uid://ux020j3prfxu" path="res://addons/kaykit_prototype_bits/Assets/obj/Wall.obj" id="1_fy7os"]
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_4j4el"]
-points = PackedVector3Array(1.96803, 4.03095, 0.289627, 1.96803, -0.0309505, 0.289627, 1.96803, 4.03095, -0.28169, -1.96811, 4.03095, 0.289627, 1.96803, -0.0309505, -0.28169, -1.96811, 4.03095, -0.28169, -1.96811, -0.0309505, 0.289627, -1.96811, -0.0309505, -0.28169)
+points = PackedVector3Array(1.968, 8, 0.29, 1.96803, -0.0309505, 0.289627, 1.968, 8, -0.282, -1.968, 8, 0.29, 1.96803, -0.0309505, -0.28169, -1.968, 8, -0.282, -1.96811, -0.0309505, 0.289627, -1.96811, -0.0309505, -0.28169)
 
-[node name="Wall" type="MeshInstance3D"]
-mesh = ExtResource("1_fy7os")
+[node name="Wall" type="Node3D"]
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 shape = SubResource("ConvexPolygonShape3D_4j4el")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0)
+mesh = ExtResource("1_fy7os")

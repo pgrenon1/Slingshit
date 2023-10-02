@@ -1,9 +1,9 @@
+using System.Collections.Generic;
 using Godot;
 
 [GlobalClass]
 public partial class FPSController : RigidBody3D
 {
-    
     [Export] float speed = 20f;
 
     [Export(PropertyHint.Range, "0.1,1.0")]
@@ -19,61 +19,31 @@ public partial class FPSController : RigidBody3D
     [Export] public Node3D cameraPivot;
     [Export] public Camera3D camera;
     [Export] public GroundCheck groundCheck;
+    [Export] public RayCast3D lineOfSightRayCast;
     
-    private Vector3 velocity;
-    private float y_velocity;
-    private Vector3 _forward;
-    private bool _isJumping;
-    private Vector3 _momentum = Vector3.Zero;
+    private bool _isJumping = false;
     private Plane _horizontalPlane = new(Vector3.Up);
-        
+    private float _acceleration;
+    private Vector3 _desiredVelocity;
+    private Target _mostLikelyTarget = null;
+    private TargetHold[] _targetHolds = new TargetHold[2];
+    private TargetHold _latestReleasedTargetHold;
+    
+    public float MovementSpeedSquared { get; private set; }
+    public Vector3 ForwardDirection => -cameraPivot.Transform.Basis.Z;
+
     private const string UP = "up";
     private const string DOWN = "down";
     private const string RIGHT = "right";
     private const string LEFT = "left";
-    
-    public float MovementSpeedSquared { get; private set; }
+    private const string UI_CANCEL = "ui_cancel";
+    private const string SHOOT1 = "shoot1";
+    private const string SHOOT2 = "shoot2";
+    private const string JUMP = "jump";
 
     public override void _Ready()
     {
-        // cameraPivot = GetNode<Node3D>("CameraPivot");
-        // camera = GetNode<Camera3D>("CameraPivot/CameraBoom/Camera");
-
         Input.MouseMode = Input.MouseModeEnum.Captured;
-        groundCheck.GroundContactLost += OnGroundContactLost;
-        groundCheck.GroundContactGained += OnGroundContactGained;
-    }
-
-    private void OnGroundContactGained()
-    {
-        
-    }
-
-    private void OnGroundContactLost()
-    {
-        // Vector3 desiredVelocity = GetDesiredVelocity();
-        // float desiredVelocityMagnitude = desiredVelocity.LengthSquared();
-        //
-        // //Check if the controller has both momentum and a current movement velocity;
-        // if(desiredVelocityMagnitude >= 0f && _momentum.LengthSquared() > 0f)
-        // {
-        //     Vector3 normalizedDesiredVelocity = desiredVelocity.Normalized();
-        //     
-        //     //Project momentum onto movement direction;
-        //     Vector3 projectedMomentum = _momentum.Project(normalizedDesiredVelocity);
-        //     //Calculate dot product to determine whether momentum and movement are aligned;
-        //     float dot = projectedMomentum.Normalized().Dot(normalizedDesiredVelocity);
-        //
-        //     //If current momentum is already pointing in the same direction as movement velocity,
-        //     //Don't add further momentum (or limit movement velocity) to prevent unwanted speed accumulation;
-        //     if(projectedMomentum.LengthSquared() >= desiredVelocityMagnitude && dot > 0f)
-        //         desiredVelocity = Vector3.Zero;
-        //     else if(dot > 0f)
-        //         desiredVelocity -= projectedMomentum;
-        // }
-        //
-        // //Add movement velocity to momentum;
-        // _momentum += desiredVelocity;
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -81,15 +51,21 @@ public partial class FPSController : RigidBody3D
     {
         MovementSpeedSquared = speed * speed;
         
-        if (Input.IsActionJustPressed("ui_cancel"))
+        if (Input.IsActionJustPressed(UI_CANCEL))
         {
             Input.MouseMode = Input.MouseModeEnum.Visible;
+        }
+        
+        if (Input.IsActionJustPressed(SHOOT1))
+        {
+            Input.MouseMode = Input.MouseModeEnum.Captured;
         }
     }
 
     public override void _Input(InputEvent @event)
     {
         base._Input(@event);
+        
         if (@event is InputEventMouseMotion motionEvent)
         {
             Vector3 rotationDegrees = cameraPivot.RotationDegrees;
@@ -112,25 +88,131 @@ public partial class FPSController : RigidBody3D
         HandleMovement(deltaFloat);
 
         HandleJump(deltaFloat);
+
+        HandleShoot(deltaFloat);
+    }
+
+    public class TargetHold
+    {
+        public Node3D target;
+        public ulong acquisitionTime;
+        public ulong releaseTime;
+
+        public TargetHold(Node3D target)
+        {
+            this.target = target;
+            acquisitionTime = Time.GetTicksMsec();
+            releaseTime = 0;
+        }
+
+        public void ReleaseTarget()
+        {
+            releaseTime = Time.GetTicksMsec();
+        }
+    }
+
+    private void HandleShoot(float delta)
+    {
+        _mostLikelyTarget = null;
+        
+        List<Target> results = new List<Target>();
+        FindTargetsInCone(cameraPivot.GlobalPosition, ForwardDirection, 10f, 10f, results);
+        
+        float minAngle = float.MaxValue;
+        foreach (Target target in results)
+        {
+            bool isTargetHold1 = _targetHolds[0] != null && _targetHolds[0].target == target;
+            bool isTargetHold2 = _targetHolds[1] != null && _targetHolds[1].target == target;
+            if (isTargetHold1 || isTargetHold2)
+                continue;
+            
+            Vector3 targetDelta = target.GlobalPosition - cameraPivot.GlobalPosition;
+            float angle = targetDelta.AngleTo(ForwardDirection);
+            if (angle > minAngle)
+                continue;
+            
+            // lineOfSightRayCast.TargetPosition = target.GlobalPosition + targetDelta.Normalized();
+            lineOfSightRayCast.LookAt(target.GlobalPosition);
+            lineOfSightRayCast.ForceRaycastUpdate();
+            
+            if (lineOfSightRayCast.IsColliding())
+                if (lineOfSightRayCast.GetCollider() != target.collisionObject3D)
+                    continue;
+
+            minAngle = angle;
+            _mostLikelyTarget = target;
+        }
+        
+        if (_mostLikelyTarget != null)
+            DebugDraw.Sphere(_mostLikelyTarget.GlobalPosition, 1f, Colors.WhiteSmoke);
+        
+        HandleShootInput(SHOOT1, 0);
+        HandleShootInput(SHOOT2, 1);
+    }
+    
+    private void HandleShootInput(string shootInput, int index)
+    {
+        TargetHold currentTargetHold = _targetHolds[index];
+
+        if (currentTargetHold == null)
+        {
+            if (Input.IsActionJustPressed(shootInput))
+            {
+                int otherIndex = index == 0 ? 1 : 0;
+                
+                if (_mostLikelyTarget != null)
+                    _targetHolds[index] = new TargetHold(_mostLikelyTarget);
+            }
+        }
+        else
+        {
+            DebugDraw.Sphere(currentTargetHold.target.GlobalPosition, 1.1f, index == 0 ? Colors.Blue : Colors.Red);
+
+            if (Input.IsActionJustReleased(shootInput))
+            {
+                ReleaseTarget(currentTargetHold);
+                
+                _targetHolds[index] = null;
+            }
+        }
+    }
+
+    private void ReleaseTarget(TargetHold targetHold)
+    {
+        targetHold.ReleaseTarget();
+        
+        if (_latestReleasedTargetHold == null || Time.GetTicksMsec() - _latestReleasedTargetHold.releaseTime > 1000f)
+            _latestReleasedTargetHold = targetHold;
+        else if (_latestReleasedTargetHold.target != targetHold.target)
+        {
+            // Launch
+            GD.Print("SLINGSHIT");
+
+            Vector3 impulseDirection = (_latestReleasedTargetHold.target.GlobalPosition - targetHold.target.GlobalPosition).Normalized();
+
+            if (_latestReleasedTargetHold.target is Target latestReleasedTarget && latestReleasedTarget.Rigidbody != null)
+                latestReleasedTarget.Rigidbody.ApplyImpulse(-impulseDirection * 35f);
+
+            if (targetHold.target is Target target && target.Rigidbody != null)
+                target.Rigidbody.ApplyImpulse(impulseDirection * 35f);
+            
+            _latestReleasedTargetHold = null;
+        }
     }
 
     private void HandleJump(float delta)
     {
-        if (!groundCheck.IsColliding())
+        if (!groundCheck.IsGrounded)
             return;
         
         _isJumping = false;
         
-        if (Input.IsActionJustPressed("jump"))
+        if (Input.IsActionJustPressed(JUMP))
         {
             LinearVelocity += Transform.Basis.Y * 7;
             _isJumping = true;
         }
     }
-    
-    private float _acceleration;
-    private Vector3 _desiredVelocity;
-    private Vector3 _projectedMoveInput;
 
     private void HandleMovement(float delta)
     {
@@ -146,17 +228,17 @@ public partial class FPSController : RigidBody3D
         
         _acceleration = groundCheck.IsGrounded ? groundAcceleration : airAcceleration;
 
-        Vector3 verticalVelocity = ExtractDotVector(LinearVelocity, Transform.Basis.Y);
+        Vector3 verticalVelocity = LinearVelocity.ExtractDotVector(Transform.Basis.Y);
         Vector3 horizontalVelocity = LinearVelocity - verticalVelocity;
         
         Vector3 velocityDelta = _desiredVelocity - horizontalVelocity;
 
-        Vector3 newVelocity = IncrementVectorTowardTargetVector(horizontalVelocity, _acceleration, delta, _desiredVelocity);
+        Vector3 newVelocity = horizontalVelocity.MoveToward(_desiredVelocity, _acceleration * delta);
 
         LinearVelocity = newVelocity + verticalVelocity;
         
-        DebugDraw.Arrow(GlobalPosition, LinearVelocity, LinearVelocity.Length(), Colors.Red);
-        DebugDraw.Arrow(GlobalPosition, _desiredVelocity, _desiredVelocity.Length(), Colors.Blue);
+        // DebugDraw.Arrow(GlobalPosition, LinearVelocity, LinearVelocity.Length(), Colors.Red);
+        // DebugDraw.Arrow(GlobalPosition, _desiredVelocity, _desiredVelocity.Length(), Colors.Blue);
     }
 
     private void SetVelocity(Vector3 desiredVelocity)
@@ -167,69 +249,15 @@ public partial class FPSController : RigidBody3D
         LinearVelocity = currentVelocity + acceleration;
     }
 
-    // private void HandleMomentum(float delta)
-    // {
-    //     Vector3 verticalMomentum = Vector3.Zero;
-    //     Vector3 horizontalMomentum = Vector3.Zero;
-    //
-    //     //Split momentum into vertical and horizontal components
-    //     if(_momentum != Vector3.Zero)
-    //     {
-    //         verticalMomentum = ExtractDotVector(_momentum, Transform.Basis.Y);
-    //         horizontalMomentum = _momentum - verticalMomentum;
-    //     }
-    //     
-    //     //Add gravity to vertical momentum;
-    //     verticalMomentum -= Transform.Basis.Y * gravity * delta;
-    //
-    //     //Remove any downward force if the controller is grounded
-    //     if (groundCheck.IsGrounded && GetDotProduct(verticalMomentum, Transform.Basis.Y) < 0f)
-    //         verticalMomentum = Vector3.Zero;
-    //
-    //     //Manipulate momentum to steer controller in the air
-    //     if (!groundCheck.IsGrounded)
-    //     {
-    //         Vector3 movementVelocity = GetDesiredVelocity();
-    //         
-    //         //If controller has received additional momentum from somewhere else
-    //         if (horizontalMomentum.LengthSquared() > MovementSpeedSquared)
-    //         {
-    //             //Prevent unwanted accumulation of speed in the direction of the current momentum
-    //             if(GetDotProduct(movementVelocity, horizontalMomentum.Normalized()) > 0f)
-    //                 movementVelocity = RemoveDotVector(movementVelocity, horizontalMomentum.Normalized());
-    //             
-    //             //Lower air control slightly with a multiplier to add some 'weight' to any momentum applied to the controller (??????)
-    //             float airControlMultiplier = 0.25f;
-    //             horizontalMomentum += movementVelocity * delta * airControlRate * airControlMultiplier;
-    //         }
-    //         //If controller has not received additional momentum
-    //         else
-    //         {
-    //             //Clamp horizontal velocity to prevent accumulation of speed;
-    //             horizontalMomentum += movementVelocity * delta * airControlRate;
-    //             horizontalMomentum.ClampMagnitude(speed);
-    //         }
-    //     }
-    //     
-    //     //Apply friction to horizontal momentum based on whether the controller is grounded;
-    //     if(groundCheck.IsGrounded)
-    //         horizontalMomentum = horizontalMomentum.MoveToward(Vector3.Zero, delta * groundFriction);
-    //     else
-    //         horizontalMomentum = horizontalMomentum.MoveToward(Vector3.Zero, delta * airFriction);
-    //     
-    //     //Add horizontal and vertical momentum back together;
-    //     _momentum = horizontalMomentum + verticalMomentum;
-    // }
-
     private Vector3 GetNormalizedHorizontalDirection()
     {
         Vector3 direction = Vector3.Zero;
+        
+        Vector3 projectedForward = _horizontalPlane.Project(ForwardDirection);
 
-        Vector3 projectedForward = _horizontalPlane.Project(cameraPivot.Transform.Basis.Z);
-
-        if (Input.IsActionPressed(UP))
-            direction -= projectedForward;
         if (Input.IsActionPressed(DOWN))
+            direction -= projectedForward;
+        if (Input.IsActionPressed(UP))
             direction += projectedForward;
         if (Input.IsActionPressed(LEFT))
             direction -= cameraPivot.Transform.Basis.X;
@@ -249,67 +277,18 @@ public partial class FPSController : RigidBody3D
 
         return desiredVelocity;
     }
-    
-    //Extract and return parts from a vector that are pointing in the same direction as 'direction';
-    public static Vector3 ExtractDotVector(Vector3 vector, Vector3 direction)
-    {
-        //Normalize vector if necessary;
-        if(direction.LengthSquared() != 1)
-            direction.Normalized();
-			    
-        float dot = vector.Dot(direction);
-			    
-        return direction * dot;
-    }
-    
-    //Returns the length of the part of a vector that points in the same direction as '_direction' (i.e., the dot product);
-    public static float GetDotProduct(Vector3 vector, Vector3 direction)
-    {
-        //Normalize vector if necessary;
-        if(direction.LengthSquared() != 1)
-            direction.Normalized();
-				
-        float length = vector.Dot(direction);
 
-        return length;
-    }
-    
-    //Remove all parts from a vector that are pointing in the same direction as '_direction';
-    public static Vector3 RemoveDotVector(Vector3 vector, Vector3 direction)
+    private void FindTargetsInCone(Vector3 origin, Vector3 direction, float distance, float maxAngle, List<Target> results)
     {
-        //Normalize vector if necessary;
-        if(direction.LengthSquared() != 1)
-            direction.Normalized();
-			
-        float amount = vector.Dot(direction);
-			
-        vector -= direction * amount;
-			
-        return vector;
-    }
-    
-    //Increments a vector toward a target vector, using '_speed' and '_deltaTime';
-    public static Vector3 IncrementVectorTowardTargetVector(Vector3 currentVector, float speed, float deltaTime, Vector3 targetVector)
-    {
-        return currentVector.MoveToward(targetVector, speed * deltaTime);
-    }
+        foreach (Target target in TargetManager.Instance.Targets)
+        {
+            Vector3 delta = target.GlobalPosition - origin;
+            float angle = Mathf.RadToDeg(direction.AngleTo(delta));
+
+            if (angle > maxAngle)
+                continue;
+            
+            results.Add(target);
+        }
+    } 
 }
-
-public static class Extensions
-{
-    public static void ClampMagnitude(this Vector3 vector, float maxLength)
-    {
-        float sqrMagnitude = vector.LengthSquared();
-        
-        if ((double) sqrMagnitude <= (double) maxLength * (double) maxLength)
-            return;
-        
-        float num1 = (float) Mathf.Sqrt((double) sqrMagnitude);
-        float num2 = vector.X / num1;
-        float num3 = vector.Y / num1;
-        float num4 = vector.Z / num1;
-        
-        vector = new Vector3(num2 * maxLength, num3 * maxLength, num4 * maxLength);
-    }
-}
-

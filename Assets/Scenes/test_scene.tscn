@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://jqojtp0sbedx"]
+[gd_scene load_steps=28 format=3 uid="uid://jqojtp0sbedx"]
 
 [ext_resource type="Texture2D" uid="uid://m50spg6v1ib2" path="res://Assets/Textures/grid.png" id="1_j5rk6"]
 [ext_resource type="PackedScene" uid="uid://cgxqwhbhdkpc2" path="res://Assets/Prefabs/wall.tscn" id="2_255h4"]
@@ -9,9 +9,10 @@
 [ext_resource type="ArrayMesh" uid="uid://b2wy3q0yej3oo" path="res://addons/kaykit_prototype_bits/Assets/obj/Primitive_Floor_Hole.obj" id="6_8vykr"]
 [ext_resource type="ArrayMesh" uid="uid://clbeuj3eccw3i" path="res://addons/kaykit_prototype_bits/Assets/obj/Primitive_Pillar.obj" id="7_0sruy"]
 [ext_resource type="ArrayMesh" uid="uid://dt2yey587lgyf" path="res://addons/kaykit_prototype_bits/Assets/obj/Primitive_Floor.obj" id="8_ygq8o"]
-[ext_resource type="ArrayMesh" uid="uid://h34f4ro2niva" path="res://addons/kaykit_prototype_bits/Assets/obj/Barrel_A.obj" id="10_7s3oo"]
+[ext_resource type="Texture2D" uid="uid://cyyynr6jh3roj" path="res://addons/kaykit_prototype_bits/Assets/gltf/prototypebits_texture.png" id="10_amm5x"]
+[ext_resource type="PackedScene" uid="uid://j024x6aa5kun" path="res://Assets/Prefabs/barrel.tscn" id="10_u2uom"]
+[ext_resource type="Script" path="res://Assets/Scripts/Target.cs" id="11_75a2s"]
 [ext_resource type="PackedScene" uid="uid://cuh68xv5qb4ka" path="res://Assets/Prefabs/fps_controller.tscn" id="11_f40sc"]
-[ext_resource type="PackedScene" uid="uid://ci2xalx2hmd8y" path="res://addons/Polygon_Prototype_SourceFiles/_SourceFiles/Characters/FixedScale/Characters.fbx" id="12_qnwlf"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vb2q8"]
 albedo_texture = ExtResource("1_j5rk6")
@@ -42,7 +43,44 @@ data = PackedVector3Array(2, 1, 2, 2, 1, -2, 2, 0, 2, 2, 0, 2, 2, 1, -2, 2, 0, -
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_q0rd1"]
 data = PackedVector3Array(-2, 0, -2, -1, 0, -1, 2, 0, -2, 2, 0, -2, -1, 0, -1, 1, 0, -1, 2, 0, -2, 2, 1, -2, -2, 0, -2, -2, 0, -2, 2, 1, -2, -2, 1, -2, 2, 1, -2, 1, 1, -1, -2, 1, -2, -2, 1, -2, 1, 1, -1, -1, 1, -1, -2, 0, 2, 2, 0, 2, -1, 0, 1, -1, 0, 1, 2, 0, 2, 1, 0, 1, -1, 1, -1, -1, 1, 1, -2, 1, -2, -2, 1, -2, -1, 1, 1, -2, 1, 2, 1, 0, -1, 1, 0, 1, 2, 0, -2, 2, 0, -2, 1, 0, 1, 2, 0, 2, 2, 1, 2, -2, 1, 2, 1, 1, 1, 1, 1, 1, -2, 1, 2, -1, 1, 1, -2, 1, -2, -2, 1, 2, -2, 0, -2, -2, 0, -2, -2, 1, 2, -2, 0, 2, -2, 0, -2, -2, 0, 2, -1, 0, -1, -1, 0, -1, -2, 0, 2, -1, 0, 1, 2, 1, -2, 2, 0, -2, 2, 1, 2, 2, 1, 2, 2, 0, -2, 2, 0, 2, -1, 1, -1, -1, 0, -1, -1, 1, 1, -1, 1, 1, -1, 0, -1, -1, 0, 1, 2, 1, -2, 2, 1, 2, 1, 1, -1, 1, 1, -1, 2, 1, 2, 1, 1, 1, 1, 1, 1, -1, 1, 1, 1, 0, 1, 1, 0, 1, -1, 1, 1, -1, 0, 1, 1, 1, -1, 1, 0, -1, -1, 1, -1, -1, 1, -1, 1, 0, -1, -1, 0, -1, 1, 0, 1, 1, 0, -1, 1, 1, 1, 1, 1, 1, 1, 0, -1, 1, 1, -1, -2, 0, 2, -2, 1, 2, 2, 0, 2, 2, 0, 2, -2, 1, 2, 2, 1, 2)
 
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_8rnkb"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_5bcih"]
+size = Vector3(2, 2, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ggfk8"]
+resource_name = "prototype_texture"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("10_amm5x")
+roughness = 0.4
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_fukv7"]
+_surfaces = [{
+"aabb": AABB(-1, -1, -0.1, 2, 2, 0.20001),
+"format": 4097,
+"index_count": 36,
+"index_data": PackedByteArray(0, 0, 3, 0, 1, 0, 0, 0, 2, 0, 3, 0, 6, 0, 5, 0, 7, 0, 6, 0, 4, 0, 5, 0, 4, 0, 1, 0, 5, 0, 4, 0, 0, 0, 1, 0, 2, 0, 4, 0, 6, 0, 2, 0, 0, 0, 4, 0, 7, 0, 1, 0, 3, 0, 7, 0, 5, 0, 1, 0, 2, 0, 7, 0, 3, 0, 2, 0, 6, 0, 7, 0),
+"name": "prototype_texture",
+"primitive": 3,
+"vertex_count": 8,
+"vertex_data": PackedByteArray(0, 0, 128, 191, 0, 0, 128, 191, 200, 204, 204, 61, 0, 0, 128, 191, 0, 0, 128, 63, 200, 204, 204, 61, 0, 0, 128, 191, 0, 0, 128, 191, 205, 204, 204, 189, 0, 0, 128, 191, 0, 0, 128, 63, 205, 204, 204, 189, 0, 0, 128, 63, 0, 0, 128, 191, 200, 204, 204, 61, 0, 0, 128, 63, 0, 0, 128, 63, 200, 204, 204, 61, 0, 0, 128, 63, 0, 0, 128, 191, 205, 204, 204, 189, 0, 0, 128, 63, 0, 0, 128, 63, 205, 204, 204, 189)
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_b0o8e"]
+resource_name = "target_wall_large_A_Cube_16112"
+_surfaces = [{
+"aabb": AABB(-1, -1, -0.1, 2, 2, 0.20001),
+"attribute_data": PackedByteArray(216, 163, 240, 60, 226, 122, 56, 63, 216, 163, 240, 60, 226, 122, 56, 63, 216, 163, 240, 60, 226, 122, 56, 63, 216, 163, 240, 60, 32, 133, 7, 63, 216, 163, 240, 60, 32, 133, 7, 63, 216, 163, 240, 60, 32, 133, 7, 63, 216, 163, 240, 60, 226, 122, 56, 63, 216, 163, 240, 60, 226, 122, 56, 63, 216, 163, 240, 60, 226, 122, 56, 63, 216, 163, 240, 60, 32, 133, 7, 63, 216, 163, 240, 60, 32, 133, 7, 63, 216, 163, 240, 60, 32, 133, 7, 63, 133, 235, 97, 62, 226, 122, 56, 63, 133, 235, 97, 62, 226, 122, 56, 63, 133, 235, 97, 62, 226, 122, 56, 63, 133, 235, 97, 62, 32, 133, 7, 63, 133, 235, 97, 62, 32, 133, 7, 63, 133, 235, 97, 62, 32, 133, 7, 63, 133, 235, 97, 62, 226, 122, 56, 63, 133, 235, 97, 62, 226, 122, 56, 63, 133, 235, 97, 62, 226, 122, 56, 63, 133, 235, 97, 62, 32, 133, 7, 63, 133, 235, 97, 62, 32, 133, 7, 63, 133, 235, 97, 62, 32, 133, 7, 63),
+"format": 4119,
+"index_count": 36,
+"index_data": PackedByteArray(0, 0, 9, 0, 3, 0, 0, 0, 6, 0, 9, 0, 20, 0, 17, 0, 23, 0, 20, 0, 14, 0, 17, 0, 13, 0, 4, 0, 15, 0, 13, 0, 2, 0, 4, 0, 7, 0, 12, 0, 18, 0, 7, 0, 1, 0, 12, 0, 22, 0, 5, 0, 11, 0, 22, 0, 16, 0, 5, 0, 8, 0, 21, 0, 10, 0, 8, 0, 19, 0, 21, 0),
+"material": SubResource("StandardMaterial3D_ggfk8"),
+"name": "prototype_texture",
+"primitive": 3,
+"vertex_count": 24,
+"vertex_data": PackedByteArray(0, 0, 128, 191, 0, 0, 128, 191, 200, 204, 204, 61, 0, 0, 255, 127, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 191, 200, 204, 204, 61, 255, 127, 0, 0, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 191, 200, 204, 204, 61, 255, 127, 255, 127, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 63, 200, 204, 204, 61, 0, 0, 255, 127, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 63, 200, 204, 204, 61, 255, 127, 255, 127, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 63, 200, 204, 204, 61, 255, 127, 255, 255, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 191, 205, 204, 204, 189, 0, 0, 255, 127, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 191, 205, 204, 204, 189, 255, 127, 0, 0, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 191, 205, 204, 204, 189, 255, 255, 255, 255, 255, 255, 255, 63, 0, 0, 128, 191, 0, 0, 128, 63, 205, 204, 204, 189, 0, 0, 255, 127, 255, 255, 255, 191, 0, 0, 128, 191, 0, 0, 128, 63, 205, 204, 204, 189, 255, 255, 255, 255, 255, 255, 255, 63, 0, 0, 128, 191, 0, 0, 128, 63, 205, 204, 204, 189, 255, 127, 255, 255, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 191, 200, 204, 204, 61, 255, 127, 0, 0, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 191, 200, 204, 204, 61, 255, 127, 255, 127, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 191, 200, 204, 204, 61, 255, 255, 255, 127, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 63, 200, 204, 204, 61, 255, 127, 255, 127, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 63, 200, 204, 204, 61, 255, 127, 255, 255, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 63, 200, 204, 204, 61, 255, 255, 255, 127, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 191, 205, 204, 204, 189, 255, 127, 0, 0, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 191, 205, 204, 204, 189, 255, 255, 255, 255, 255, 255, 255, 63, 0, 0, 128, 63, 0, 0, 128, 191, 205, 204, 204, 189, 255, 255, 255, 127, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 63, 205, 204, 204, 189, 255, 255, 255, 255, 255, 255, 255, 63, 0, 0, 128, 63, 0, 0, 128, 63, 205, 204, 204, 189, 255, 127, 255, 255, 255, 255, 255, 191, 0, 0, 128, 63, 0, 0, 128, 63, 205, 204, 204, 189, 255, 255, 255, 127, 255, 255, 255, 191)
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_fukv7")
 
 [sub_resource type="Environment" id="Environment_ka8ib"]
 background_energy_multiplier = 2.18
@@ -154,7 +192,7 @@ mesh = ExtResource("4_87pt5")
 shape = SubResource("ConcavePolygonShape3D_4v2u8")
 
 [node name="PrimitiveStairs" type="MeshInstance3D" parent="ENV"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -10)
+transform = Transform3D(0.999999, -0.00068171, 0.000938163, 0.000681155, 1, 0.000607432, -0.000938565, -0.000606809, 0.999999, -6, 0, -10)
 mesh = ExtResource("5_rya8y")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="ENV/PrimitiveStairs"]
@@ -216,21 +254,34 @@ shape = SubResource("ConcavePolygonShape3D_h112b")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="ENV/PrimitiveFloorHole/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_q0rd1")
 
-[node name="Barrel" type="RigidBody3D" parent="ENV"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.09964, -6.49564)
+[node name="target_wall_large_A" type="StaticBody3D" parent="ENV"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.98326, 2.11808, -11.7104)
 
-[node name="BarrelA" type="MeshInstance3D" parent="ENV/Barrel"]
-mesh = ExtResource("10_7s3oo")
-skeleton = NodePath("../../..")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ENV/target_wall_large_A"]
+shape = SubResource("BoxShape3D_5bcih")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ENV/Barrel"]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0, 0, 0, 1, 0, 0, 0)
-shape = SubResource("CylinderShape3D_8rnkb")
+[node name="target_wall_large_A2" type="MeshInstance3D" parent="ENV/target_wall_large_A"]
+transform = Transform3D(0.999987, 0.00301089, -0.00415785, -0.00302203, 0.999992, -0.00268125, 0.00414976, 0.00269376, 0.999988, 0, 0, 0)
+mesh = SubResource("ArrayMesh_b0o8e")
+skeleton = NodePath("")
+
+[node name="Target" type="Node3D" parent="ENV/target_wall_large_A" node_paths=PackedStringArray("collisionObject3D", "collider")]
+script = ExtResource("11_75a2s")
+collisionObject3D = NodePath("..")
+collider = NodePath("../CollisionShape3D")
+
+[node name="Barrel" parent="ENV" instance=ExtResource("10_u2uom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.66711, -6.84386)
+max_contacts_reported = 5
+
+[node name="Barrel_2" parent="ENV" instance=ExtResource("10_u2uom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93268, 1.66711, -6.30697)
+
+[node name="Barrel_3" parent="ENV" instance=ExtResource("10_u2uom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.93268, 1.66711, 8.03598)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_ka8ib")
 
 [node name="FPSController" parent="." instance=ExtResource("11_f40sc")]
-
-[node name="Characters" parent="." instance=ExtResource("12_qnwlf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.756914, 0, -3.59456)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)

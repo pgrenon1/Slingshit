@@ -10,8 +10,7 @@
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_lwulr"]
 
-[node name="FPSController" type="RigidBody3D" node_paths=PackedStringArray("cameraPivot", "camera", "groundCheck")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+[node name="FPSController" type="RigidBody3D" node_paths=PackedStringArray("cameraPivot", "camera", "groundCheck", "lineOfSightRayCast")]
 input_ray_pickable = false
 axis_lock_angular_x = true
 axis_lock_angular_y = true
@@ -27,6 +26,7 @@ airAcceleration = 20.0
 cameraPivot = NodePath("CameraPivot")
 camera = NodePath("CameraPivot/Camera3D")
 groundCheck = NodePath("GroundCheck")
+lineOfSightRayCast = NodePath("RayCast3D")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_bahc3")
@@ -36,6 +36,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.479608, 0)
 shape = SubResource("SphereShape3D_lwulr")
 target_position = Vector3(0, -1.1, 0)
 script = ExtResource("2_xfkxp")
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47651, 0)
+target_position = Vector3(0, 0, -50)
 
 [node name="CameraPivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47651, 0)
