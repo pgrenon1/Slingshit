@@ -26,18 +26,18 @@ airAcceleration = 20.0
 cameraPivot = NodePath("CameraPivot")
 camera = NodePath("CameraPivot/Camera3D")
 groundCheck = NodePath("GroundCheck")
-lineOfSightRayCast = NodePath("RayCast3D")
+lineOfSightRayCast = NodePath("LineOfSightCheck")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_bahc3")
 
 [node name="GroundCheck" type="ShapeCast3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.479608, 0)
+transform = Transform3D(0.75, 0, 0, 0, 0.75, 0, 0, 0, 0.75, 0, 0, 0)
 shape = SubResource("SphereShape3D_lwulr")
-target_position = Vector3(0, -1.1, 0)
+target_position = Vector3(0, -1.2, 0)
 script = ExtResource("2_xfkxp")
 
-[node name="RayCast3D" type="RayCast3D" parent="."]
+[node name="LineOfSightCheck" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47651, 0)
 target_position = Vector3(0, 0, -50)
 

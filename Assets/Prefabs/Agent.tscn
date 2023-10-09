@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://c766vxy24td5a"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Agent.cs" id="1_wp7m7"]
+[ext_resource type="Script" path="res://Assets/Scripts/Target.cs" id="2_bkla7"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_a8or6"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_a7aa1"]
+
+[node name="Agent" type="RigidBody3D" node_paths=PackedStringArray("navAgent")]
+script = ExtResource("1_wp7m7")
+speed = 1.0
+acceleration = 5.0
+navAgent = NodePath("NavigationAgent3D")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_a8or6")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_a7aa1")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+target_desired_distance = 1.2
+path_height_offset = 0.1
+path_max_distance = 10.01
+height = 2.0
+debug_enabled = true
+
+[node name="Target" type="Node3D" parent="." node_paths=PackedStringArray("collisionObject3D", "collider", "agent")]
+script = ExtResource("2_bkla7")
+collisionObject3D = NodePath("..")
+collider = NodePath("../CollisionShape3D")
+agent = NodePath("..")

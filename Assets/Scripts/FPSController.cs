@@ -1,10 +1,29 @@
 using System.Collections.Generic;
 using Godot;
+using ImGuiNET;
 
 [GlobalClass]
 public partial class FPSController : RigidBody3D
 {
+    public class TargetHold
+    {
+        public Node3D target;
+        public ulong releaseTime;
+
+        public TargetHold(Node3D target)
+        {
+            this.target = target;
+            releaseTime = 0;
+        }
+
+        public void ReleaseTarget()
+        {
+            releaseTime = Time.GetTicksMsec();
+        }
+    }
+    
     [Export] float speed = 20f;
+    [Export] private float jumpSpeed = 7f;
 
     [Export(PropertyHint.Range, "0.1,1.0")]
     float mouse_sensitivity = 0.3f;
@@ -15,23 +34,35 @@ public partial class FPSController : RigidBody3D
 
     [Export] public float groundAcceleration = 10f;
     [Export] public float airAcceleration = 10f;
+    [Export] public float jumpInputStickyTime = 0.12f;
+    [Export] public float coyoteTime = 0.2f;
+    
+    [Export] float slingShitForceOnRigidbody = 35f;
+    [Export] float slingShitForceOnSelf = 35f;
+    [Export] float slingShitTimeAllowedBetweenReleases = 0.2f;
     
     [Export] public Node3D cameraPivot;
     [Export] public Camera3D camera;
     [Export] public GroundCheck groundCheck;
     [Export] public RayCast3D lineOfSightRayCast;
     
-    private bool _isJumping = false;
-    private Plane _horizontalPlane = new(Vector3.Up);
-    private float _acceleration;
-    private Vector3 _desiredVelocity;
+    private Plane _horizontalPlane = new (Vector3.Up);
+    private float _acceleration = 0f;
+    private Vector3 _desiredVelocity = Vector3.Zero;
     private Target _mostLikelyTarget = null;
     private TargetHold[] _targetHolds = new TargetHold[2];
-    private TargetHold _latestReleasedTargetHold;
+    private TargetHold _firstReleasedTargetHold = null;
+
+    private bool _isHoldingJumpInput = false;
+    private ulong _lastRequestedJumpTime = ulong.MinValue;
+    private ulong _lastAvailableJumpTime = ulong.MinValue;
     
     public float MovementSpeedSquared { get; private set; }
     public Vector3 ForwardDirection => -cameraPivot.Transform.Basis.Z;
 
+    private bool CanJump => Time.GetTicksMsec() - _lastAvailableJumpTime <= coyoteTime * 1000f;
+    public bool IsGrounded { get; private set; }
+    
     private const string UP = "up";
     private const string DOWN = "down";
     private const string RIGHT = "right";
@@ -45,8 +76,7 @@ public partial class FPSController : RigidBody3D
     {
         Input.MouseMode = Input.MouseModeEnum.Captured;
     }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
+    
     public override void _Process(double delta)
     {
         MovementSpeedSquared = speed * speed;
@@ -56,10 +86,26 @@ public partial class FPSController : RigidBody3D
             Input.MouseMode = Input.MouseModeEnum.Visible;
         }
         
-        if (Input.IsActionJustPressed(SHOOT1))
+        if (Input.IsActionJustPressed(SHOOT1) && !Input.IsActionPressed(UI_CANCEL))
         {
             Input.MouseMode = Input.MouseModeEnum.Captured;
         }
+
+        ImGui.Begin("Debug");
+        {
+            for (int i = 0; i < _targetHolds.Length; i++)
+            {
+                string text = _targetHolds[i] == null ? "null" : _targetHolds[i].target.ToString();
+                ImGui.Text($"Hold {i}: {text}");
+            }
+            
+            for (int i = 0; i < _releasedTargetHolds.Length; i++)
+            {
+                string text = _releasedTargetHolds[i] == null ? "null" : _releasedTargetHolds[i].target.ToString();
+                ImGui.Text($"Released {i}: {text}");
+            }
+        }
+        ImGui.End();
     }
 
     public override void _Input(InputEvent @event)
@@ -79,39 +125,67 @@ public partial class FPSController : RigidBody3D
         }
     }
 
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        base._UnhandledInput(@event);
+
+        HandleJumpInputs(@event);
+    }
+
+    private void HandleJumpInputs(InputEvent @event)
+    {
+        if (@event.IsActionPressed(JUMP))
+        {
+            RequestJump();
+
+            _isHoldingJumpInput = true;
+        }
+        else
+        {
+            _isHoldingJumpInput = false;
+        }
+    }
+
+    private void RequestJump()
+    {
+        _lastRequestedJumpTime = Time.GetTicksMsec();
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
 
-        float deltaFloat = (float)delta;
+        float deltaFloat = (float)delta; // we could pre-alloc this but that could allow us to use it at invalid times
+
+        ProcessGroundDetection();
+
+        ProcessJump();
         
-        HandleMovement(deltaFloat);
+        ProcessMovement(deltaFloat);
 
-        HandleJump(deltaFloat);
-
-        HandleShoot(deltaFloat);
+        ProcessShootInputs();
     }
 
-    public class TargetHold
+    private void ProcessGroundDetection()
     {
-        public Node3D target;
-        public ulong acquisitionTime;
-        public ulong releaseTime;
-
-        public TargetHold(Node3D target)
+        if (groundCheck.Check())
         {
-            this.target = target;
-            acquisitionTime = Time.GetTicksMsec();
-            releaseTime = 0;
+            _lastAvailableJumpTime = Time.GetTicksMsec();
+
+            if (!IsGrounded)
+            {
+                // just landed
+            }
+
+            IsGrounded = true;
         }
-
-        public void ReleaseTarget()
+        else
         {
-            releaseTime = Time.GetTicksMsec();
+            IsGrounded = false;
         }
     }
 
-    private void HandleShoot(float delta)
+    private void ProcessShootInputs()
     {
         _mostLikelyTarget = null;
         
@@ -144,77 +218,94 @@ public partial class FPSController : RigidBody3D
         }
         
         if (_mostLikelyTarget != null)
-            DebugDraw.Sphere(_mostLikelyTarget.GlobalPosition, 1f, Colors.WhiteSmoke);
+            DebugDraw3D.DrawSphere(_mostLikelyTarget.GlobalPosition, 1f, Colors.WhiteSmoke);
         
         HandleShootInput(SHOOT1, 0);
         HandleShootInput(SHOOT2, 1);
-    }
-    
-    private void HandleShootInput(string shootInput, int index)
-    {
-        TargetHold currentTargetHold = _targetHolds[index];
 
-        if (currentTargetHold == null)
-        {
-            if (Input.IsActionJustPressed(shootInput))
-            {
-                int otherIndex = index == 0 ? 1 : 0;
-                
-                if (_mostLikelyTarget != null)
-                    _targetHolds[index] = new TargetHold(_mostLikelyTarget);
-            }
-        }
-        else
-        {
-            DebugDraw.Sphere(currentTargetHold.target.GlobalPosition, 1.1f, index == 0 ? Colors.Blue : Colors.Red);
-
-            if (Input.IsActionJustReleased(shootInput))
-            {
-                ReleaseTarget(currentTargetHold);
-                
-                _targetHolds[index] = null;
-            }
-        }
+        HandleSlingShit();
     }
 
-    private void ReleaseTarget(TargetHold targetHold)
+    private void HandleSlingShit()
     {
-        targetHold.ReleaseTarget();
-        
-        if (_latestReleasedTargetHold == null || Time.GetTicksMsec() - _latestReleasedTargetHold.releaseTime > 1000f)
-            _latestReleasedTargetHold = targetHold;
-        else if (_latestReleasedTargetHold.target != targetHold.target)
+        if (_releasedTargetHolds[0] == null || _releasedTargetHolds[1] == null)
+            return;
+
+        if (Mathf.Abs((long)_releasedTargetHolds[0].releaseTime - (long)_releasedTargetHolds[1].releaseTime) <= slingShitTimeAllowedBetweenReleases * 1000f)
         {
-            // Launch
             GD.Print("SLINGSHIT");
 
-            Vector3 impulseDirection = (_latestReleasedTargetHold.target.GlobalPosition - targetHold.target.GlobalPosition).Normalized();
+            Vector3 impulseDirection = (_releasedTargetHolds[0].target.GlobalPosition - _releasedTargetHolds[1].target.GlobalPosition).Normalized();
 
-            if (_latestReleasedTargetHold.target is Target latestReleasedTarget && latestReleasedTarget.Rigidbody != null)
-                latestReleasedTarget.Rigidbody.ApplyImpulse(-impulseDirection * 35f);
+            if (_releasedTargetHolds[0].target is Target latestReleasedTarget && latestReleasedTarget.Rigidbody != null)
+                latestReleasedTarget.Launch(-impulseDirection * slingShitForceOnRigidbody);
 
-            if (targetHold.target is Target target && target.Rigidbody != null)
-                target.Rigidbody.ApplyImpulse(impulseDirection * 35f);
+            if (_releasedTargetHolds[1].target is Target target && target.Rigidbody != null)
+                target.Launch(impulseDirection * slingShitForceOnRigidbody);
             
-            _latestReleasedTargetHold = null;
+            _releasedTargetHolds[0] = null;
+            _releasedTargetHolds[1] = null;
         }
     }
 
-    private void HandleJump(float delta)
+    private TargetHold[] _releasedTargetHolds = new TargetHold[2];
+
+    private void HandleShootInput(string shootInput, int index)
     {
-        if (!groundCheck.IsGrounded)
-            return;
-        
-        _isJumping = false;
-        
-        if (Input.IsActionJustPressed(JUMP))
+        if (Input.IsActionJustPressed(shootInput))
         {
-            LinearVelocity += Transform.Basis.Y * 7;
-            _isJumping = true;
+            if (_mostLikelyTarget != null)
+            {
+                _targetHolds[index] = new TargetHold(_mostLikelyTarget);
+                _releasedTargetHolds[index] = null;
+            }
+        }
+        else if (Input.IsActionJustReleased(shootInput))
+        {
+            Release(index);
+        }
+
+        if (_targetHolds[index] != null)
+            DebugDraw3D.DrawSphereHd(_targetHolds[index].target.GlobalPosition, 1.1f, index == 0 ? Colors.Blue : Colors.Red);
+    }
+
+    private void Release(int index)
+    {
+        if (_targetHolds[index] != null)
+        {
+            _targetHolds[index].ReleaseTarget();
+            _releasedTargetHolds[index] = _targetHolds[index];
+        }
+
+        _targetHolds[index] = null;
+    }
+
+    private void ProcessJump()
+    {
+        ulong time = Time.GetTicksMsec();
+        if (CanJump && time - _lastRequestedJumpTime <= jumpInputStickyTime * 1000f)
+        {
+            Jump();
         }
     }
 
-    private void HandleMovement(float delta)
+    private void Jump()
+    {
+        Vector3 currentVelocity = LinearVelocity; // prealloc?
+        currentVelocity.Y = jumpSpeed;
+        LinearVelocity = currentVelocity;
+
+        FinalizeJump();
+    }
+    
+    private void FinalizeJump()
+    {
+        IsGrounded = false;
+        _lastRequestedJumpTime = ulong.MinValue;
+        _lastAvailableJumpTime = ulong.MinValue;
+    }
+
+    private void ProcessMovement(float delta)
     {
         _desiredVelocity = GetDesiredVelocity();
         if (_desiredVelocity.LengthSquared() == 0f)
@@ -226,7 +317,7 @@ public partial class FPSController : RigidBody3D
 
         PhysicsMaterialOverride.Friction = 0.5f;
         
-        _acceleration = groundCheck.IsGrounded ? groundAcceleration : airAcceleration;
+        _acceleration = IsGrounded ? groundAcceleration : airAcceleration;
 
         Vector3 verticalVelocity = LinearVelocity.ExtractDotVector(Transform.Basis.Y);
         Vector3 horizontalVelocity = LinearVelocity - verticalVelocity;
@@ -290,5 +381,5 @@ public partial class FPSController : RigidBody3D
             
             results.Add(target);
         }
-    } 
+    }
 }

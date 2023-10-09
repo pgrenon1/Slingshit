@@ -27,14 +27,16 @@ public partial class GroundCheck : ShapeCast3D
     
     public delegate void OnGroundContactGained();
     public event OnGroundContactGained GroundContactGained;
-    
-    public override void _PhysicsProcess(double delta)
-    {
-        base._PhysicsProcess(delta);
 
+    public bool Check()
+    {
+        ForceShapecastUpdate();
+        
         IsGrounded = IsColliding();
         
         if (IsGrounded)
             GroundNormal = GetCollisionNormal(0);
+
+        return IsGrounded;
     }
 }

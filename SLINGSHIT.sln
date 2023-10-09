@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SLINGSHIT", "SLINGSHIT.csproj", "{23BC9636-A5FA-458F-A32E-2644B670E207}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SLINGSHIT", "SLINGSHIT.csproj", "{FED68EA3-10C1-44A9-92E6-C43C5FFE7417}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,11 +9,11 @@ Global
 	ExportRelease|Any CPU = ExportRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{23BC9636-A5FA-458F-A32E-2644B670E207}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{23BC9636-A5FA-458F-A32E-2644B670E207}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{23BC9636-A5FA-458F-A32E-2644B670E207}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
-		{23BC9636-A5FA-458F-A32E-2644B670E207}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
-		{23BC9636-A5FA-458F-A32E-2644B670E207}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
-		{23BC9636-A5FA-458F-A32E-2644B670E207}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{FED68EA3-10C1-44A9-92E6-C43C5FFE7417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FED68EA3-10C1-44A9-92E6-C43C5FFE7417}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FED68EA3-10C1-44A9-92E6-C43C5FFE7417}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{FED68EA3-10C1-44A9-92E6-C43C5FFE7417}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{FED68EA3-10C1-44A9-92E6-C43C5FFE7417}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{FED68EA3-10C1-44A9-92E6-C43C5FFE7417}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
 	EndGlobalSection
 EndGlobal

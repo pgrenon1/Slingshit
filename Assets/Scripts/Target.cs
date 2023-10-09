@@ -4,8 +4,8 @@
 public partial class Target : Node3D
 {
     [Export] public CollisionObject3D collisionObject3D;
-    
     [Export] public CollisionShape3D collider;
+    [Export] public Agent agent;
     
     public Vector3 PreviousLinearVelocity { get; private set; }
 
@@ -30,13 +30,6 @@ public partial class Target : Node3D
         }
     }
 
-    // public override void _Ready()
-    // {
-    //     base._Ready();
-    //
-    //     BodyEntered += OnBodyEntered;
-    // }
-
     public override void _EnterTree()
     {
         base._EnterTree();
@@ -56,22 +49,22 @@ public partial class Target : Node3D
         var target = node.GetChildOfType<Target>();
         if (target != null)
         {
-            if (target.Rigidbody != null)
-            {
-                GD.Print("RigidBody");
-            }
-            else
-            {
-                GD.Print("StaticBody");
-            }
+            // if (target.Rigidbody != null)
+            // {
+            //     GD.Print("RigidBody");
+            // }
+            // else
+            // {
+            //     GD.Print("StaticBody");
+            // }
         }
     }
 
-    //
-    // public override void _PhysicsProcess(double delta)
-    // {
-    //     base._PhysicsProcess(delta);
-    //
-    //     PreviousLinearVelocity = LinearVelocity;
-    // }
+    public void Launch(Vector3 impulseForce)
+    {
+        if (agent != null)
+            agent.SuspendNavigation = true;
+        
+        Rigidbody.ApplyImpulse(impulseForce);
+    }
 }
