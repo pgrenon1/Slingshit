@@ -98,7 +98,7 @@ data = PackedVector3Array(2, 1, 2, 2, 1, -2, 2, 0, 2, 2, 0, 2, 2, 1, -2, 2, 0, -
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_q0rd1"]
 data = PackedVector3Array(-2, 0, -2, -1, 0, -1, 2, 0, -2, 2, 0, -2, -1, 0, -1, 1, 0, -1, 2, 0, -2, 2, 1, -2, -2, 0, -2, -2, 0, -2, 2, 1, -2, -2, 1, -2, 2, 1, -2, 1, 1, -1, -2, 1, -2, -2, 1, -2, 1, 1, -1, -1, 1, -1, -2, 0, 2, 2, 0, 2, -1, 0, 1, -1, 0, 1, 2, 0, 2, 1, 0, 1, -1, 1, -1, -1, 1, 1, -2, 1, -2, -2, 1, -2, -1, 1, 1, -2, 1, 2, 1, 0, -1, 1, 0, 1, 2, 0, -2, 2, 0, -2, 1, 0, 1, 2, 0, 2, 2, 1, 2, -2, 1, 2, 1, 1, 1, 1, 1, 1, -2, 1, 2, -1, 1, 1, -2, 1, -2, -2, 1, 2, -2, 0, -2, -2, 0, -2, -2, 1, 2, -2, 0, 2, -2, 0, -2, -2, 0, 2, -1, 0, -1, -1, 0, -1, -2, 0, 2, -1, 0, 1, 2, 1, -2, 2, 0, -2, 2, 1, 2, 2, 1, 2, 2, 0, -2, 2, 0, 2, -1, 1, -1, -1, 0, -1, -1, 1, 1, -1, 1, 1, -1, 0, -1, -1, 0, 1, 2, 1, -2, 2, 1, 2, 1, 1, -1, 1, 1, -1, 2, 1, 2, 1, 1, 1, 1, 1, 1, -1, 1, 1, 1, 0, 1, 1, 0, 1, -1, 1, 1, -1, 0, 1, 1, 1, -1, 1, 0, -1, -1, 1, -1, -1, 1, -1, 1, 0, -1, -1, 0, -1, 1, 0, 1, 1, 0, -1, 1, 1, 1, 1, 1, 1, 1, 0, -1, 1, 1, -1, -2, 0, 2, -2, 1, 2, 2, 0, 2, 2, 0, 2, -2, 1, 2, 2, 1, 2)
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_d5phg"]
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ghpx2"]
 friction = 0.0
 
 [node name="TestScene" type="Node"]
@@ -308,6 +308,10 @@ shape = SubResource("ConcavePolygonShape3D_q0rd1")
 [node name="Agent" parent="." instance=ExtResource("15_he5q6")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -4)
 input_ray_pickable = false
-physics_material_override = SubResource("PhysicsMaterial_d5phg")
+axis_lock_angular_x = true
+axis_lock_angular_z = true
+physics_material_override = SubResource("PhysicsMaterial_ghpx2")
 max_contacts_reported = 2
 contact_monitor = true
+acceleration = 2.0
+maxStabilizedVelocityMagnitude = 0.1

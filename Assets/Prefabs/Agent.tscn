@@ -9,8 +9,6 @@
 
 [node name="Agent" type="RigidBody3D" node_paths=PackedStringArray("navAgent")]
 script = ExtResource("1_wp7m7")
-speed = 1.0
-acceleration = 5.0
 navAgent = NodePath("NavigationAgent3D")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]

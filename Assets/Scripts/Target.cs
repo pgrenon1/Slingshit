@@ -62,9 +62,9 @@ public partial class Target : Node3D
 
     public void Launch(Vector3 impulseForce)
     {
-        if (agent != null)
-            agent.SuspendNavigation = true;
-        
         Rigidbody.ApplyImpulse(impulseForce);
+        
+        if (agent != null)
+            agent.OnLaunch();
     }
 }
