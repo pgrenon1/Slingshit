@@ -1,0 +1,32 @@
+[remap]
+
+importer="animation_library"
+importer_version=1
+type="AnimationLibrary"
+uid="uid://dg4wg6otrxf8u"
+path="res://.godot/imported/zombie headbutt.fbx-1cdafcc5812e2eaeda41691aa2d73a53.res"
+
+[deps]
+
+source_file="res://Assets/Models/Zombies/Tourist/zombie headbutt.fbx"
+dest_files=["res://.godot/imported/zombie headbutt.fbx-1cdafcc5812e2eaeda41691aa2d73a53.res"]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="Scene Root"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+meshes/ensure_tangents=true
+meshes/generate_lods=false
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

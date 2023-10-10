@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://jqojtp0sbedx"]
+[gd_scene load_steps=31 format=3 uid="uid://jqojtp0sbedx"]
 
 [ext_resource type="Texture2D" uid="uid://m50spg6v1ib2" path="res://Assets/Textures/grid.png" id="1_j5rk6"]
 [ext_resource type="PackedScene" uid="uid://cgxqwhbhdkpc2" path="res://Assets/Prefabs/wall.tscn" id="2_255h4"]
@@ -97,9 +97,6 @@ data = PackedVector3Array(2, 1, 2, 2, 1, -2, 2, 0, 2, 2, 0, 2, 2, 1, -2, 2, 0, -
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_q0rd1"]
 data = PackedVector3Array(-2, 0, -2, -1, 0, -1, 2, 0, -2, 2, 0, -2, -1, 0, -1, 1, 0, -1, 2, 0, -2, 2, 1, -2, -2, 0, -2, -2, 0, -2, 2, 1, -2, -2, 1, -2, 2, 1, -2, 1, 1, -1, -2, 1, -2, -2, 1, -2, 1, 1, -1, -1, 1, -1, -2, 0, 2, 2, 0, 2, -1, 0, 1, -1, 0, 1, 2, 0, 2, 1, 0, 1, -1, 1, -1, -1, 1, 1, -2, 1, -2, -2, 1, -2, -1, 1, 1, -2, 1, 2, 1, 0, -1, 1, 0, 1, 2, 0, -2, 2, 0, -2, 1, 0, 1, 2, 0, 2, 2, 1, 2, -2, 1, 2, 1, 1, 1, 1, 1, 1, -2, 1, 2, -1, 1, 1, -2, 1, -2, -2, 1, 2, -2, 0, -2, -2, 0, -2, -2, 1, 2, -2, 0, 2, -2, 0, -2, -2, 0, 2, -1, 0, -1, -1, 0, -1, -2, 0, 2, -1, 0, 1, 2, 1, -2, 2, 0, -2, 2, 1, 2, 2, 1, 2, 2, 0, -2, 2, 0, 2, -1, 1, -1, -1, 0, -1, -1, 1, 1, -1, 1, 1, -1, 0, -1, -1, 0, 1, 2, 1, -2, 2, 1, 2, 1, 1, -1, 1, 1, -1, 2, 1, 2, 1, 1, 1, 1, 1, 1, -1, 1, 1, 1, 0, 1, 1, 0, 1, -1, 1, 1, -1, 0, 1, 1, 1, -1, 1, 0, -1, -1, 1, -1, -1, 1, -1, 1, 0, -1, -1, 0, -1, 1, 0, 1, 1, 0, -1, 1, 1, 1, 1, 1, 1, 1, 0, -1, 1, 1, -1, -2, 0, 2, -2, 1, 2, 2, 0, 2, 2, 0, 2, -2, 1, 2, 2, 1, 2)
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ghpx2"]
-friction = 0.0
 
 [node name="TestScene" type="Node"]
 
@@ -310,8 +307,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -4)
 input_ray_pickable = false
 axis_lock_angular_x = true
 axis_lock_angular_z = true
-physics_material_override = SubResource("PhysicsMaterial_ghpx2")
 max_contacts_reported = 2
 contact_monitor = true
-acceleration = 2.0
-maxStabilizedVelocityMagnitude = 0.1
+linear_damp = 0.5
+angular_damp = 0.3
+speed = 0.6

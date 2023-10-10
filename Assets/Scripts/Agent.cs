@@ -15,10 +15,13 @@ public partial class Agent : RigidBody3D
     [Export] public float defaultFriction = 0f;
 
     [Export] public NavigationAgent3D navAgent;
+    [Export] public AgentAnimationTree animationTree;
+    [Export] public Node3D visualsRoot;
 
     private bool _suspendNavigation;
-    private double _stabilizeTimer;
-    
+    private float _stabilizeTimer;
+    private bool _isStabilizing;
+
     public override void _Ready()
     {
         base._Ready();
@@ -59,46 +62,92 @@ public partial class Agent : RigidBody3D
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
-
+        
         if (_suspendNavigation)
         {
-            if (LinearVelocity.Length() <= maxStabilizedVelocityMagnitude)
+            if (_isStabilizing)
             {
-                TryStabilize(delta);
+                Stabilize(delta);
             }
-            else
-                return;
+            if (LinearVelocity.Length() <= maxStabilizedVelocityMagnitude && !_isStabilizing)
+            {
+                StartStabilizing();
+            }
         }
+        
+        ProcessMovement(delta);
+    }
+
+    private Quaternion _originalStabilizingRotation;
+    
+    private void StartStabilizing()
+    {
+        _isStabilizing = true;
+        _originalStabilizingRotation = Basis.GetRotationQuaternion();
+        ToggleAngularLock(true);
+    }
+
+    private void ProcessMovement(double delta)
+    {
+        if (_suspendNavigation)
+            return;
         
         Vector3 nextPosition = navAgent.GetNextPathPosition();
         Vector3 deltaToNextPosition = nextPosition - GlobalPosition;
         Vector3 desiredVelocity = deltaToNextPosition.Normalized() * speed;
 
-        Vector3 velocity = LinearVelocity.MoveToward(desiredVelocity, (float)delta * acceleration);
+        Vector3 velocity = LinearVelocity.MoveToward(desiredVelocity, (float) delta * acceleration);
 
         LinearVelocity = velocity;
-    }
-    
-    private void TryStabilize(double delta)
-    {
-        _stabilizeTimer += delta;
 
-        if (_stabilizeTimer >= stabilizationDuration)
+        if (LinearVelocity.LengthSquared() > 0f)
+            visualsRoot.Quaternion = visualsRoot.Transform.LookingAt(-LinearVelocity, Vector3.Up).Basis.GetRotationQuaternion();
+    }
+
+    private void Stabilize(double delta)
+    {
+        _stabilizeTimer += (float)delta;
+        
+        if (_stabilizeTimer <= stabilizationDuration)
         {
-            OnStabilized();
+            float t = _stabilizeTimer / stabilizationDuration;
+            
+            // lerp position so feet are on ground ?
+            
+            // slerp rotation so agent is standing
+            Quaternion = _originalStabilizingRotation.Slerp(Quaternion.Identity, Easing.Cubic.InOut(t));
+        }
+        else
+        {
+            FinishStabilization();
         }
     }
 
-    private void OnStabilized()
+    private void FinishStabilization()
     {
+        _stabilizeTimer = 0f;
         _suspendNavigation = false;
         PhysicsMaterialOverride.Friction = defaultFriction;
+        ToggleAngularLock(true);
+        _isStabilizing = false;
+        Quaternion = Quaternion.Identity;
+        animationTree.IsWalking = true;
     }
     
     public void OnLaunch()
     {
+        _stabilizeTimer = 0f;
         _suspendNavigation = true;
         PhysicsMaterialOverride.Friction = frictionOnLaunch;
-        _stabilizeTimer = 0f;
+        ToggleAngularLock(false);
+        _isStabilizing = false;
+        animationTree.IsWalking = false;
+    }
+
+    public void ToggleAngularLock(bool value)
+    {
+        AxisLockAngularX = value;
+        AxisLockAngularZ = value;
+        AxisLockAngularY = value;
     }
 }
