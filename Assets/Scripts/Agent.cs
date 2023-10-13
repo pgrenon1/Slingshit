@@ -17,6 +17,8 @@ public partial class Agent : RigidBody3D
     [Export] public NavigationAgent3D navAgent;
     [Export] public AgentAnimationTree animationTree;
     [Export] public Node3D visualsRoot;
+    [Export] public Skeleton3D skeleton;
+    [Export] public CollisionShape3D collider;
 
     private bool _suspendNavigation;
     private float _stabilizeTimer;
@@ -57,6 +59,9 @@ public partial class Agent : RigidBody3D
         base._Process(delta);
         
         DebugDraw3D.DrawSphere(navAgent.TargetPosition);
+        
+        if (Input.IsKeyPressed(Key.Alt))
+            skeleton.PhysicalBonesStartSimulation();
     }
 
     public override void _PhysicsProcess(double delta)
@@ -132,6 +137,7 @@ public partial class Agent : RigidBody3D
         _isStabilizing = false;
         Quaternion = Quaternion.Identity;
         animationTree.IsWalking = true;
+        skeleton.PhysicalBonesStopSimulation();
     }
     
     public void OnLaunch()
@@ -142,6 +148,7 @@ public partial class Agent : RigidBody3D
         ToggleAngularLock(false);
         _isStabilizing = false;
         animationTree.IsWalking = false;
+        skeleton.PhysicalBonesStartSimulation();
     }
 
     public void ToggleAngularLock(bool value)

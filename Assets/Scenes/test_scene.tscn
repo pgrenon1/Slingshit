@@ -145,6 +145,7 @@ script = ExtResource("5_s5fqc")
 [node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D/ENV/Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
+collision_layer = 3
 size = Vector3(24, 1, 24)
 material = SubResource("StandardMaterial3D_vb2q8")
 
